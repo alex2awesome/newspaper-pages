@@ -6,6 +6,8 @@ notebooks/text_nn/.idea
 *.csv
 *.txt
 *.pyc
+*.tar
+*.tar.gz
 notebooks/exploratory_analysis
 notebooks/.ipynb_checkpoints
 nyt_corpus
