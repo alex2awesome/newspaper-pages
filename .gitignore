@@ -1,0 +1,9 @@
+notebooks/text_nn/data
+notebooks/text_nn/.idea
+
+*.csv
+*.txt
+notebooks/exploratory_analysis
+notebooks/.ipynb_checkpoints
+nyt_corpus
+notebooks/__pycache__
