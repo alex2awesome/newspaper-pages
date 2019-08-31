@@ -1,8 +1,11 @@
 notebooks/text_nn/data
 notebooks/text_nn/.idea
 
+*.pt
+*.pt.gen
 *.csv
 *.txt
+*.pyc
 notebooks/exploratory_analysis
 notebooks/.ipynb_checkpoints
 nyt_corpus
