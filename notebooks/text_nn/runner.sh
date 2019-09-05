@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=4
 #SBATCH --time=3:00:00 --gres=gpu:k20:1
-cd /home/rcf-proj/ef/spangher/newspaper-pages/text_nn
+cd /home/rcf-proj/ef/spangher/newspaper-pages/notebooks/text_nn
 source /usr/usc/cuda/default/setup.sh
 
 model_form=cnn
