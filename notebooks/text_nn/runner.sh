@@ -6,7 +6,7 @@ source /usr/usc/cuda/default/setup.sh
 
 model_form=cnn
 num_layers=1
-word_cutoff=80
+word_cutoff=400
 epochs=50
 cont_lam = 0
 sel_lam = .01
