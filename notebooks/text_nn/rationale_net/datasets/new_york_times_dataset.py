@@ -14,13 +14,14 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 SMALL_TRAIN_SIZE = 800
 
-def preprocess_data(data_df):
-    max_len = data_df['processed_bodies'].str.split().str.len().max()
+def preprocess_data(data_df, strip_punc):
+    if strip_punc:
+        data_df['processed_bodies'] = data_df['processed_bodies'].str.replace('\W+', ' ').str.lower().str.strip()
     return list(zip(
         data_df['processed_bodies'], 
         data_df['label'],
         data_df['label'].map({1:'A-1', 0:'not-A-1'}),
-    )), max_len
+    ))
 
 
 @RegisterDataset('nytimes_data')
@@ -30,7 +31,7 @@ class NYTimesDataset(AbstractDataset):
         self.args.num_class = 20
         self.name = name
         self.dataset = []
-        self.word_to_indx  = word_to_indx
+        self.word_to_indx = word_to_indx
         self.max_length = int(args.word_cutoff) if args.word_cutoff != 'None' else None
         self.class_balance = defaultdict(int)
 
@@ -40,7 +41,7 @@ class NYTimesDataset(AbstractDataset):
             else: ## local
                 fname = os.path.join(here, '..', '..', '..', 'data', 'processed_train_time_balanced_df.csv')
             print('reading %s...' % fname)
-            data, max_len = preprocess_data(pd.read_csv(fname))
+            data = preprocess_data(pd.read_csv(fname), strip_punc=args.strip_punc)
             random.shuffle(data)
             num_train = int(len(data)*.9)
             if name != 'train':
@@ -51,7 +52,7 @@ class NYTimesDataset(AbstractDataset):
             else:
                 fname = os.path.join(here, '..', '..', '..', 'data', 'processed_test_time_unbalanced_df.csv')
             print('reading %s...' % fname)
-            data, max_len = preprocess_data(pd.read_csv(fname))
+            data = preprocess_data(pd.read_csv(fname), strip_punc=args.strip_punc)
 
         self.max_length = self.max_length if (self.max_length != None) else max_len
         for indx, _sample in tqdm.tqdm(enumerate(data)):
