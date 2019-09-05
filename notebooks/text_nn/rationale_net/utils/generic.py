@@ -53,6 +53,7 @@ def parse_args():
     parser.add_argument('--training_data_path', default=None, help='path for the training data')
     parser.add_argument('--test_data_path', default=None, help='path for the test data')
     parser.add_argument('--word_cutoff', type=str, default='80', help='number of words to cut each sentence off at.')
+    parser.add_argument('--strip_punc', action='store_true', default=False, help='whether or not to strip punctuation.')
 
     # gumbel
     parser.add_argument('--gumbel_temprature', type=float, default=1, help="Start temprature for gumbel softmax. This is annealed via exponential decay")
