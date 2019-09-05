@@ -208,7 +208,6 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
 
         if args.get_rationales:
             selection_cost, continuity_cost = gen.loss(mask, x_indx)
-
             loss += args.selection_lambda * selection_cost
             loss += args.continuity_lambda * continuity_cost
 

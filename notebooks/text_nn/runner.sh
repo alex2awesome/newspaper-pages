@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=4
 #SBATCH --time=3:00:00 --gres=gpu:k20:1
-cd /home/rcf-proj/ef/spangher/newspaper-pages/newspaper-pages/notebooks/text_nn
+cd /home/rcf-proj/ef/spangher/newspaper-pages/newspaper-pages/gnotebooks/text_nn
 source /usr/usc/cuda/default/setup.sh
 
 model_form=cnn
 num_layers=1
 word_cutoff=80
 epochs=50
+cont_lam = 0
+sel_lam = .01
 
 srun -n1 python3.7 -u scripts/main.py \
     --batch_size 64 \
@@ -29,8 +31,8 @@ srun -n1 python3.7 -u scripts/main.py \
     --train \
     --test \
     --word_cutoff ${word_cutoff}
-    --results_path results__model-form_${model_form}__num-layers_${num_layers}__word-cutoff_${word_cutoff}__epochs_${epochs}__punct-stripped  \
+    --results_path results__cont-lambda_${cont_lam}__sel-lam_${sel_lam}__word-cutoff_${word_cutoff}__epochs_${epochs}__punct-stripped  \
     --gumbel_decay 1e-5 \
     --get_rationales \
-    --selection_lambda .001 \
-    --continuity_lambda 0
+    --selection_lambda ${sel_lam} \
+    --continuity_lambda ${cont_lam}
