@@ -39,7 +39,7 @@ class NYTimesDataset(AbstractDataset):
             if args.training_data_path:
                 fname = args.training_data
             else: ## local
-                fname = os.path.join(here, '..', '..', '..', 'data', 'processed_train_time_balanced_df.csv')
+                fname = os.path.join(here, '..', '..', '..', '..', '..', 'data', 'processed_train_time_balanced_df.csv')
             print('reading %s...' % fname)
             data = preprocess_data(pd.read_csv(fname), strip_punc=args.strip_punc)
             random.shuffle(data)
@@ -50,7 +50,7 @@ class NYTimesDataset(AbstractDataset):
             if args.test_data_path:
                 fname = args.test_data
             else:
-                fname = os.path.join(here, '..', '..', '..', 'data', 'processed_test_time_unbalanced_df.csv')
+                fname = os.path.join(here, '..', '..', '..', '..', '..', 'data', 'processed_test_time_unbalanced_df.csv')
             print('reading %s...' % fname)
             data = preprocess_data(pd.read_csv(fname), strip_punc=args.strip_punc)
 
