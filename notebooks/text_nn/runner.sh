@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-#SBATCH --ntasks=4
-#SBATCH --time=3:00:00 --gres=gpu:k20:1
+#SBATCH --ntasks=1
+#SBATCH --time=24:00:00 --gres=gpu:k20:1
+#SBATCH --job-name=rationale-net__sel-lambda_${sel_lam}__cont-lambda_${cont_lam}
+
 cd /home/rcf-proj/ef/spangher/newspaper-pages/newspaper-pages/gnotebooks/text_nn
 source /usr/usc/cuda/default/setup.sh
 
@@ -8,8 +10,6 @@ model_form=cnn
 num_layers=1
 word_cutoff=400
 epochs=50
-cont_lam = 0
-sel_lam = .01
 
 srun -n1 python3.7 -u scripts/main.py \
     --batch_size 64 \
@@ -30,7 +30,8 @@ srun -n1 python3.7 -u scripts/main.py \
     --save_dir snapshot \
     --train \
     --test \
-    --word_cutoff ${word_cutoff}
+    --word_cutoff ${word_cutoff} \
+    --strip_punc \
     --results_path results__cont-lambda_${cont_lam}__sel-lam_${sel_lam}__word-cutoff_${word_cutoff}__epochs_${epochs}__punct-stripped  \
     --gumbel_decay 1e-5 \
     --get_rationales \
