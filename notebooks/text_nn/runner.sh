@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00 --gres=gpu:k20:1
-#SBATCH --job-name=rationale-net__sel-lambda_${sel_lam}__cont-lambda_${cont_lam}
+#SBATCH --job-name=sl_"${sel_lam}"__cl_"${cont_lam}"
 
 cd /home/rcf-proj/ef/spangher/newspaper-pages/newspaper-pages/gnotebooks/text_nn
 source /usr/usc/cuda/default/setup.sh
@@ -10,6 +10,8 @@ model_form=cnn
 num_layers=1
 word_cutoff=400
 epochs=50
+sel_lam="${sel_lam}"
+cont_lam="${cont_lam}"
 
 srun -n1 python3.7 -u scripts/main.py \
     --batch_size 64 \
