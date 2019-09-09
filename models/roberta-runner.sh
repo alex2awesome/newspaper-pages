@@ -13,7 +13,7 @@ NUM_CLASSES=2
 MAX_SENTENCES=8        # Batch size.
 ROBERTA_PATH=nyt-model.pt
 
-CUDA_VISIBLE_DEVICES=0 python train.py ../../data/nyt-roberta-processed/ \
+CUDA_VISIBLE_DEVICES=0 python3.7 train.py ../../data/nyt-roberta-processed/ \
     --restore-file $ROBERTA_PATH \
     --max-positions 512 \
     --max-sentences $MAX_SENTENCES \
