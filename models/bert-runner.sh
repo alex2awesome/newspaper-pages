@@ -3,12 +3,12 @@
 #SBATCH --time=24:00:00 --gres=gpu:k20:1
 #SBATCH --job-name=roberta
 
-cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/pytorch-transformers
+cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/pytorch-transformers/examples
 source /usr/usc/cuda/default/setup.sh
 
 DATA_DIR=../data
 
-python run_glue.py \
+python3.7 run_glue.py \
   --task_name sst-2 \
   --model_type bert \
   --model_name_or_path bert-large-uncased \
