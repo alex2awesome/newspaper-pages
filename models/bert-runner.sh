@@ -7,7 +7,7 @@ cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/pytorch-transformers/examp
 source /usr/usc/cuda/default/setup.sh
 
 mkdir -p /home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
-PYTORCH_PRETRAINED_BERT_CACHE=/home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
+export PYTORCH_PRETRAINED_BERT_CACHE=/home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
 DATA_DIR=/home/rcf-proj/ef/spangher/newspaper-pages/data
 
 python3.7 run_glue.py \
@@ -17,7 +17,7 @@ python3.7 run_glue.py \
   --data_dir $DATA_DIR/bert-data/ \
   --output_dir bert-output \
   --cache_dir bert-cache \
-  --max_seq_length 2000 \
+  --max_seq_length 512 \
   --do_train \
   --do_eval \
   --do_lower_case \
