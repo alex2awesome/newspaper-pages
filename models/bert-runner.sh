@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00 --gres=gpu:k20:1
-#SBATCH --job-name=roberta
+#SBATCH --job-name=bert
 
 cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/pytorch-transformers/examples
 source /usr/usc/cuda/default/setup.sh
 
-DATA_DIR=../data
+mkdir -p /home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
+PYTORCH_PRETRAINED_BERT_CACHE=/home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
+DATA_DIR=/home/rcf-proj/ef/spangher/newspaper-pages/data
 
 python3.7 run_glue.py \
   --task_name sst-2 \
