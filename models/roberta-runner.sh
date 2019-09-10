@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00 --gres=gpu:k20:1
+#SBATCH --time=24:00:00 --gres=gpu:p100:1
 #SBATCH --job-name=roberta
 
 cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/fairseq
