@@ -18,6 +18,7 @@ python3.7 run_glue.py \
   --do_train \
   --do_eval \
   --do_lower_case \
+  --save_steps 2500 \
   --per_gpu_train_batch_size 8 \
   --per_gpu_eval_batch_size 8 \
   --learning_rate 2e-5 \
