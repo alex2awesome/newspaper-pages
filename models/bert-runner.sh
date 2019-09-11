@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00 --gres=gpu:p100:1
+#SBATCH --time=24:00:00 --gres=gpu:k40:2
 #SBATCH --job-name=bert
 
 cd  /home/rcf-proj/ef/spangher/newspaper-pages/models/pytorch-transformers/examples
@@ -17,6 +17,7 @@ python3.7 run_glue.py \
   --do_eval \
   --save_steps 2500 \
   --do_lower_case \
+  --local_rank 0 \
   --per_gpu_train_batch_size 8 \
   --per_gpu_eval_batch_size 8 \
   --learning_rate 2e-5 \
