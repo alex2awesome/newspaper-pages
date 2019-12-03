@@ -19,5 +19,9 @@ bills
 app/data
 models/data
 models/bert-hf-checkpoints
+models/roberta-hf-checkpoints
 models/runs
+models/fairseq
+models/pytorch-transformers/examples/bert-runs
+models/pytorch-transformers/examples/roberta-runs
 notebooks/__pycache__

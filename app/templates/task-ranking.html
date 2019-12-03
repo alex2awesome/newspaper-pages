@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block style %}
+.hidden {
+    transition: opacity 1s ease-out;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+.list-group {
+	padding-right: 75px;
+    padding-left: 75px;
+    padding-bottom: 75px;
+    padding-top: 15px;
+}
+
+.list-group-item:hover {
+    background-color: #007bff38;
+}
+/*.visible {
+    opacity: 1;
+    height: auto;
+}
+*/
+
+.header{
+	padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 25px;
+    padding-top: 25px;
+
+}
+
+.topheader{
+	padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 25px;
+    padding-top: 25px;
+
+}
+
+{% endblock %}
+
+{% block header %}
+<div class='topheader'>
+	<h1>Newsworthiness Ranking Task</h1>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class='header'>
+	<p>There are {{ num_items }} documents from {{ corpus }} to rank.</p>
+
+	<h4>We want to know what you think: Which of these items is the most "newsworthy"? Which is the least?</h4>
+
+	<p>Please judge for each item which one would be the most likely to result in a front page story in a major newspaper.</p>
+
+	<p>For this ranking task, we don't expect every item to appear "newsworthy". Some might be more "newsworthy" than others, but many might seem equally uninteresting. We are just interested in your best guess about each document relative to the others.</p>
+
+	<p>You can <b>double-click</b> on each document to see more text. <b>Click and drag</b> each document to put this list in order of "newsworthiness", from:</p>
+	<ul>
+		<li>The <b>top</b> being the most "newsworthy".</li>
+		<li>The <b> bottom</b> being the least "newsworthy".</li>
+	</ul>
+
+</div>
+
+<ul id="sortable" class="list-group">
+  {% for item in input %}
+
+	  <li class="list-group-item" data_index="{{item.data_id}}" batch="{{item.batch}}" score="{{item.score}}">
+	  	<div class="short shown">{{item.text | truncate(400)}} <b><i>[dbl-click more]</i></b></div>
+	  	<div class="long hidden">{{item.text}} <b><i>[dbl-click less]</i></b></div>
+	  </li>
+  {% endfor %}
+</ul>
+<button type="button" class="btn btn-danger btn-lg submit">Submit</button>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    $( function() {
+	    $( "#sortable" ).sortable();
+	    $( "#sortable" ).disableSelection();
+	  } );
+
+	$('.list-group-item').dblclick(function(){
+		shown = $(this).find('div.shown')
+		hidden = $(this).find('div.hidden')
+		shown.removeClass('shown').addClass('hidden')
+		hidden.removeClass('hidden').addClass('shown')
+	})
+
+	// submit answers
+	$('.submit').click(function() {
+		alert('submitting...')
+		output = [] 
+		user_cookie = JSON.parse(sessionStorage['user'])
+	    user_cookie['session_tasks'] = user_cookie['session_tasks'] + 1
+        sessionStorage['user'] = JSON.stringify(user_cookie);
+		// gather questions
+		$('.list-group-item').each(function(i, d) {
+			data_id = $(d).attr('data_index')
+			batch = $(d).attr('batch')
+			score = $(d).attr('score')
+			output = output.concat({
+				"index": i,
+				"data_id": parseInt(data_id),
+				'batch': batch,
+				'score': score,
+				'user_email': user_cookie['email'],
+				'user_name': user_cookie['full_name'],
+				'task': '{{corpus}}-ranking'
+			})
+		})
+
+	    $.ajax({
+	        url: "/post",
+	        type: 'POST',
+	        contentType: 'application/json',
+	        data: JSON.stringify({
+	        	"data": output,
+	        	"corpus": "{{corpus}}"
+	        }),
+	        success: function(result) {
+	            if(result === "no errors") location.href = "/render"
+	        }
+	    });
+	})
+</script>
+{% endblock %}
+</html>

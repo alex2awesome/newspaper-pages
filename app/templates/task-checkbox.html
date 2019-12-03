@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block style %}
+.hidden {
+    transition: opacity 1s ease-out;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+.form-check {
+	padding-right: 75px;
+    padding-left: 75px;
+    padding-bottom: 75px;
+    padding-top: 15px;
+}
+
+.list-group-item:hover {
+    background-color: #007bff38;
+}
+/*.visible {
+    opacity: 1;
+    height: auto;
+}
+*/
+.big-checkbox {
+	width: 30px;
+	height: 30px;
+}
+
+.textbox{
+	padding-right: 20px;
+    padding-left: 30px;	
+}
+.header{
+	padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 25px;
+    padding-top: 25px;
+
+}
+.topheader{
+	padding-right: 25px;
+    padding-left: 25px;
+    padding-bottom: 25px;
+    padding-top: 25px;
+
+}
+{% endblock %}
+
+{% block header %}
+<div class='topheader'>
+	<h1>Selection Task</h1>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class='header'>
+
+	<p>There are {{ num_items }} documents from {{ corpus }} to rank.</p>
+
+	<h4>We want to know what you think: Which of these items is "newsworthy"? Which isn't?</h4>
+
+	<p>Please judge for each item which one would be the most likely to result in a front page story in a major newspaper.</p>
+
+	<p>For this selection task, we don't expect every item to appear "newsworthy". In fact, none might be interesting. We are just interested in what you're interested in. Are there any documents on here that you would want investigated more?</p>
+
+	<p>You can <b>double-click</b> on each document to see more text. <b>Click</b> the checkbox on the <i>left</i> of each document to rate it's "newsworthiness":</p>
+	<ul>
+		<li><b>Checked</b> means you feel this item is "newsworthy".</li>
+		<li><b>Unchecked</b> means you feel this item is NOT "newsworthy".</li>
+	</ul>
+
+</div>
+
+<div class="form-check">
+  {% for item in input %}
+  	<div class="list-group-item">
+      <input type="checkbox" class="form-check-input big-checkbox" batch="{{item.batch}}" score="{{item.score}}" data_index="{{item.data_id}}">
+      <div class="textbox short shown">{{item.text | truncate(400)}} <b><i>[dbl-click more]</i></b></div>
+	  <div class="textbox long hidden">{{item.text}} <b><i>[dbl-click less]</i></b></div>
+	</div>
+  {% endfor %}
+</div>
+<button type="button" class="btn btn-danger btn-lg submit">Submit</button>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+	$('input').click(function(i, d){
+		if ($(this).hasClass('checked'))
+			$(this).removeClass('checked')
+		else
+			$(this).addClass('checked')
+	})
+
+
+	$('.list-group-item').dblclick(function(){
+		shown = $(this).find('div.shown')
+		hidden = $(this).find('div.hidden')
+		shown.removeClass('shown').addClass('hidden')
+		hidden.removeClass('hidden').addClass('shown')
+	})
+
+	// submit answers
+	$('.submit').click(function() {
+		alert('submitting...')
+		output = [] 
+		user_cookie = JSON.parse(sessionStorage['user'])
+		// gather questions
+		$('input').each(function(i, d) {
+			data_id = $(d).attr('data_index')
+			batch = $(d).attr('batch')
+			score = $(d).attr('score')
+			checked = $(d).hasClass('checked')
+			// 
+			output = output.concat({
+				"data_id": parseInt(data_id),
+				"is_checked": checked,
+				'batch': batch,
+				'score': score,
+				'user_email': user_cookie['email'],
+				'user_name': user_cookie['full_name'],
+				'task': 'checkbox'
+			})
+		})
+
+	    $.ajax({
+	        url: "/post",
+	        type: 'POST',
+	        contentType: 'application/json',
+	        data: JSON.stringify({
+	        	"data": output,
+	        	"corpus": "{{corpus}}"
+	        }),
+	    });
+	})
+</script>
+{% endblock %}
+</html>

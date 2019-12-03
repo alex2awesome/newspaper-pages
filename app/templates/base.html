@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<style type="text/css">
+	{% block style %}{% endblock %}
+    .g-signin2{
+        float: left;
+        padding-left: 25px;
+    }
+    .body{
+        display: none;
+    }
+    #pleasesignin{
+        padding-left: 25px;
+    }
+    #user_stats{
+        padding-right: 25px;
+        padding-left: 25px;
+        padding-bottom: 25px;
+        padding-top: 25px;
+
+    }
+</style>
+
+<!-- jquery and D3 -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<!-- sign in -->
+<meta name="google-signin-scope" content="profile email">
+<meta name="google-signin-client_id" content="520950082549-6i0pm438pduoa8lri7ccf250futj7v9h.apps.googleusercontent.com">
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<!--  -->
+<body>
+    {% block header %}{% endblock %}
+    <div id="user_stats"></div>
+    <div style="width: 80%; overflow: hidden;">
+        <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+        <button type="button" id='signout' style="display: none;" class="btn btn-light" onclick="signOut()">Sign Out</button>
+    </div>
+    <div id='pleasesignin'>
+        <p>Please sign in before answering any questions!</p>
+    </div>
+    <div class='body'>
+        {% block body %}{% endblock %}
+    </div>
+</body>
+<script>
+  function getUserCookie(){
+    user_cookie = sessionStorage['user']
+    // get front end stats
+    if (user_cookie) {
+        user_cookie = JSON.parse(user_cookie)
+    }
+    return user_cookie    
+  }
+  function putUserCookie(user_cookie){
+    sessionStorage['user'] = JSON.stringify(user_cookie);
+  }
+
+  function onSignIn(googleUser) {
+    // 
+    user_cookie = getUserCookie()
+
+    // initialize from scratch
+    if (! user_cookie){
+        var user_cookie = {}
+        profile = googleUser.getBasicProfile();
+        user_cookie['user_id']  = profile.getId(); // Don't send this directly to your server!
+        user_cookie['full_name'] = profile.getName();
+        user_cookie['given_name'] = profile.getGivenName();
+        user_cookie['family_name'] = profile.getFamilyName();
+        user_cookie['image_url'] = profile.getImageUrl();
+        user_cookie['email'] = profile.getEmail();
+        user_cookie['session_tasks'] = 0
+    }
+
+    // get backend stats
+    $.ajax({
+        url: "/get_user_stats",
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            "user_email": user_cookie['email']
+        }),
+        success: function(result) {
+            user_cookie['total_tasks'] = result
+            // update text
+            $('#user_stats').text('Hello ' +
+                 user_cookie['given_name'] + 
+            ', you have completed ' +
+                 user_cookie['session_tasks'] + 
+            ' tasks in this session, and ' + 
+                 user_cookie['total_tasks'] + 
+            ' overall!'
+            )
+        }
+    });
+
+    // The ID token you need to pass to your backend: .. why? 
+    user_cookie['id_token'] = googleUser.getAuthResponse().id_token;
+    putUserCookie(user_cookie)
+    $('#signout').css('display', 'block')
+    $('.body').css('display', 'block')
+    $('#user_stats').css('display', 'block')
+    $('#pleasesignin').css('display', 'none')
+  }
+
+  function signOut(){
+    // update session.
+    user_cookie = getUserCookie()
+    user_cookie['session_tasks'] = 0
+    putUserCookie(user_cookie)
+    // log out.
+    auth2 = gapi.auth2.init()
+    auth2.signOut()
+    $('#signout').css('display', 'none')
+    $('.body').css('display', 'none')
+    $('#user_stats').css('display', 'none')
+    $('#pleasesignin').css('display', 'block')
+  }
+</script>
+{% block script %}{% endblock %}
+</html>
