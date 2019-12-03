@@ -9,6 +9,15 @@ notebooks/text_nn/.idea
 *.tar
 *.tar.gz
 notebooks/exploratory_analysis
+notebooks/rationalnet_exploration/models
+notebooks/rationalnet_exploration/slurm_output
 notebooks/.ipynb_checkpoints
 nyt_corpus
+court_documents
+council_meetings
+bills
+app/data
+models/data
+models/bert-hf-checkpoints
+models/runs
 notebooks/__pycache__
