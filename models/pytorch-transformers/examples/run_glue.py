@@ -590,6 +590,7 @@ def main(args=None):
         with open(args.prediction_data_file, 'w') as f:
             for prob, pred in result:
                 f.write('%s\t%s' % (prob, pred))
+                f.write('\n')
 
     return results
 
