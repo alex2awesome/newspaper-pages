@@ -255,6 +255,68 @@ def evaluate(args, model, tokenizer, prefix=""):
     return results
 
 
+def predict(args, model, tokenizer, prefix=""):
+    logger.info("Starting prediction...")
+
+    # Loop to handle MNLI double evaluation (matched, mis-matched)
+    pred_task_names = ("mnli", "mnli-mm") if args.task_name == "mnli" else (args.task_name,)
+    pred_outputs_dirs = (args.output_dir, args.output_dir + '-MM') if args.task_name == "mnli" else (args.output_dir,)
+
+    results = []
+    for pred_task, pred_output_dir in zip(pred_task_names, pred_outputs_dirs):
+        pred_dataset = load_and_cache_examples(args, pred_task, tokenizer, evaluate=True)
+
+        if not os.path.exists(pred_output_dir) and args.local_rank in [-1, 0]:
+            os.makedirs(pred_output_dir)
+
+        args.pred_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+        # Note that DistributedSampler samples randomly
+        pred_sampler = SequentialSampler(pred_dataset) if args.local_rank == -1 else DistributedSampler(pred_dataset)
+        pred_dataloader = DataLoader(pred_dataset, sampler=pred_sampler, batch_size=args.pred_batch_size)
+
+        # Predict!
+        logger.info("***** Running prediction {} *****".format(prefix))
+        logger.info("  Num examples = %d", len(pred_dataset))
+        logger.info("  Batch size = %d", args.pred_batch_size)
+        pred_loss = 0.0
+        nb_pred_steps = 0
+        preds = None
+        out_label_ids = None
+        for batch in tqdm(pred_dataloader, desc="Evaluating"):
+            model.eval()
+            batch = tuple(t.to(args.device) for t in batch)
+
+            with torch.no_grad():
+                inputs = {
+                    'input_ids':      batch[0],
+                    'attention_mask': batch[1],
+                    'token_type_ids': batch[2] if args.model_type in ['bert', 'xlnet'] else None,  # XLM and RoBERTa don't use segment_ids
+                    'labels':         batch[3]
+                }
+                outputs = model(**inputs)
+                tmp_pred_loss, logits = outputs[:2]
+                pred_loss += tmp_pred_loss.mean().item()
+            nb_pred_steps += 1
+            if preds is None:
+                preds = logits.detach().cpu().numpy()
+                out_label_ids = inputs['labels'].detach().cpu().numpy()
+            else:
+                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+                out_label_ids = np.append(out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
+
+        if args.output_mode == "classification":
+            probas = preds[:, 1]
+            preds = np.argmax(preds, axis=1)
+        elif args.output_mode == "regression":
+            probas = None
+            preds = np.squeeze(preds)
+        for prob, pred in zip(probas, preds):
+            results.append((prob, pred))
+
+    return results
+
+
+
 def load_and_cache_examples(args, task, tokenizer, evaluate=False):
     if args.local_rank not in [-1, 0] and not evaluate:
         torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
@@ -311,8 +373,7 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False):
     dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
     return dataset
 
-
-def main():
+def get_args():
     parser = argparse.ArgumentParser()
 
     ## Required parameters
@@ -326,6 +387,8 @@ def main():
                         help="The name of the task to train selected in the list: " + ", ".join(processors.keys()))
     parser.add_argument("--output_dir", default=None, type=str, required=True,
                         help="The output directory where the model predictions and checkpoints will be written.")
+    parser.add_argument("--prediction_data_file", default=None, type=str, required=True,
+                        help="The output directory to save model predictions.")
 
     ## Other parameters
     parser.add_argument("--config_name", default="", type=str,
@@ -341,8 +404,10 @@ def main():
                         help="Whether to run training.")
     parser.add_argument("--do_eval", action='store_true',
                         help="Whether to run eval on the dev set.")
+    parser.add_argument("--do_prediction", action='store_true',
+                        help="Whether to run eval on the dev set.")
     parser.add_argument("--evaluate_during_training", action='store_true',
-                        help="Rul evaluation during training at each logging step.")
+                        help="Rule evaluation during training at each logging step.")
     parser.add_argument("--do_lower_case", action='store_true',
                         help="Set this flag if you are using an uncased model.")
 
@@ -392,7 +457,11 @@ def main():
     parser.add_argument('--server_ip', type=str, default='', help="For distant debugging.")
     parser.add_argument('--server_port', type=str, default='', help="For distant debugging.")
     args = parser.parse_args()
+    return args
 
+def main(args=None):
+    if not args:
+        args = get_args()
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
 
@@ -440,31 +509,30 @@ def main():
 
     args.model_type = args.model_type.lower()
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
-    config = config_class.from_pretrained(
-        args.config_name if args.config_name else args.model_name_or_path,
-        num_labels=num_labels,
-        finetuning_task=args.task_name,
-        cache_dir=args.cache_dir,
-    )
-    tokenizer = tokenizer_class.from_pretrained(
-        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
-        do_lower_case=args.do_lower_case,
-        cache_dir=args.cache_dir,
-    )
-    model = model_class.from_pretrained(
-        args.model_name_or_path,
-        from_tf=bool('.ckpt' in args.model_name_or_path),
-        config=config,
-        cache_dir=args.cache_dir,
-    )
+    if args.do_train or args.do_eval:
+        config = config_class.from_pretrained(
+            args.config_name if args.config_name else args.model_name_or_path,
+            num_labels=num_labels,
+            finetuning_task=args.task_name,
+            cache_dir=args.cache_dir,
+        )
+        tokenizer = tokenizer_class.from_pretrained(
+            args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
+            do_lower_case=args.do_lower_case,
+            cache_dir=args.cache_dir,
+        )
+        model = model_class.from_pretrained(
+            args.model_name_or_path,
+            from_tf=bool('.ckpt' in args.model_name_or_path),
+            config=config,
+            cache_dir=args.cache_dir,
+        )
 
-    if args.local_rank == 0:
-        torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
+        if args.local_rank == 0:
+            torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
-    model.to(args.device)
-
-    logger.info("Training/evaluation parameters %s", args)
-
+        model.to(args.device)
+        logger.info("Training/evaluation parameters %s", args)
 
     # Training
     if args.do_train:
@@ -511,6 +579,17 @@ def main():
             result = evaluate(args, model, tokenizer, prefix=global_step)
             result = dict((k + '_{}'.format(global_step), v) for k, v in result.items())
             results.update(result)
+
+    if args.do_prediction and args.local_rank in [-1, 0]:
+        results = []
+        tokenizer = tokenizer_class.from_pretrained(args.output_dir, do_lower_case=args.do_lower_case)
+        model = model_class.from_pretrained(args.output_dir)
+        model.to(args.device)
+        result = predict(args, model, tokenizer)
+        results.append(result)
+        with open(args.prediction_data_file, 'w') as f:
+            for prob, pred in result:
+                f.write('%s\t%s' % (prob, pred))
 
     return results
 

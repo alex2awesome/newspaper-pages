@@ -24,3 +24,18 @@ python3.7 run_glue.py \
   --learning_rate 2e-5 \
   --num_train_epochs 20.0 \
   --cache_dir /home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
+
+
+
+python3.7 run_glue.py \
+  --task_name sst-2 \
+  --model_type roberta \
+  --model_name_or_path roberta-base \
+  --data_dir city-council-data \
+  --output_dir roberta-hf-output2 \
+  --max_seq_length 300 \
+  --do_prediction \
+  --do_lower_case \
+  --per_gpu_train_batch_size 8 \
+  --per_gpu_eval_batch_size 8 \
+  --prediction_data_file city-council-labeled.txt
