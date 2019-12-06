@@ -9,9 +9,10 @@ device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda e
 
 ## read data
 print('reading data...')
-nyt_data = pd.read_csv('../data/bert-data/train.tsv', sep='\t', nrows=50000)
+nyt_data = pd.read_csv('data/bert-data/train.tsv', sep='\t', nrows=50000)
+## 
 model_version = 'bert-base-uncased'
-model = '../pytorch-transformers/examples/bert-runs'
+model = 'pytorch-transformers/examples/bert-runs'
 do_lower_case = True
 
 ## load model
