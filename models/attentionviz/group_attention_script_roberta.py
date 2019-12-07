@@ -2,6 +2,7 @@ from collections import defaultdict
 from tqdm import tqdm
 import json
 import pandas as pd 
+import numpy as np
 
 bert_data = pd.read_csv('../data/bert-data/train.tsv', sep='\t')
 attention = {
@@ -30,7 +31,8 @@ with open('attention-output-roberta.txt', encoding='utf-8') as f:
 for label in [0, 1]:
     print('label: %s' % label)
     for layer in tqdm(range(12)):
-        json.dump(
-            attention[label][layer],
-            open('roberta-attention-grouped__label-%s_layer-%s.json' % (label, layer))
-        )
+        layer_words = attention[label][layer]
+        mean_var = {}
+        for word, attn_list in layer_words.items():
+            mean_var[word] = [np.mean(attn_list), np.var(attn_list)]
+        json.dump(mean_var, open('roberta-attention-grouped__label-%s_layer-%s.json' % (label, layer)))
