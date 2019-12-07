@@ -35,4 +35,5 @@ for label in [0, 1]:
         mean_var = {}
         for word, attn_list in layer_words.items():
             mean_var[word] = [np.mean(attn_list), np.var(attn_list)]
-        json.dump(mean_var, open('roberta-attention-grouped__label-%s_layer-%s.json' % (label, layer)))
+        with open('roberta-attention-grouped__label-%s_layer-%s.json' % (label, layer), 'w') as f:
+            json.dump(mean_var, f)
