@@ -8,6 +8,7 @@ source /usr/usc/cuda/default/setup.sh
 
 DATA_DIR=/home/rcf-proj/ef/spangher/newspaper-pages/data
 
+## training command
 python3.7 run_glue.py \
   --task_name sst-2 \
   --model_type roberta \
@@ -25,8 +26,7 @@ python3.7 run_glue.py \
   --num_train_epochs 20.0 \
   --cache_dir /home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
 
-
-
+### prediction command
 python3.7 run_glue.py \
   --task_name sst-2 \
   --model_type roberta \

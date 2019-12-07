@@ -23,3 +23,18 @@ python3.7 run_glue.py \
   --learning_rate 2e-5 \
   --num_train_epochs 20.0 \
   --cache_dir /home/rcf-proj/ef/spangher/newspaper-pages/models/.cache/torch
+
+
+### prediction command
+python3.7 run_glue.py \
+  --task_name sst-2 \
+  --model_type bert \
+  --model_name_or_path bert-large-uncased \
+  --data_dir city-council-data \
+  --output_dir bert-runs \
+  --max_seq_length 300 \
+  --do_prediction \
+  --do_lower_case \
+  --per_gpu_train_batch_size 8 \
+  --per_gpu_eval_batch_size 8 \
+  --prediction_data_file city-council-labeled-bert.txt
