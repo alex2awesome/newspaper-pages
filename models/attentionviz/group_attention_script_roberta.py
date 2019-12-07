@@ -9,8 +9,11 @@ attention = {
     1: {i: defaultdict(list) for i in range(12)}
 }
 
+sent_idx = 0
+label_idx = int(sent_idx / (12 * 12))
+label = bert_data.loc[label_idx, 'label']       
+layer = int(sent_idx / 12)  % 12
 with open('attention-output-roberta.txt', encoding='utf-8') as f:
-    sent_idx = 0
     for line in tqdm(f, total=462549168):
         line = line.strip()
         if line != '':
