@@ -3,7 +3,7 @@ from tqdm import tqdm
 import json
 import pandas as pd 
 
-bert_data = pd.read_csv('../data/bert-data/train.tsv', sep='\t', nrows=50000)
+bert_data = pd.read_csv('../data/bert-data/train.tsv', sep='\t')
 attention = {
     0: {i: defaultdict(list) for i in range(12)},
     1: {i: defaultdict(list) for i in range(12)}
@@ -23,7 +23,14 @@ with open('attention-output-roberta.txt', encoding='utf-8') as f:
         else:
             sent_idx += 1
             label_idx = int(sent_idx / (12 * 12))
-            label = bert_data.loc[label_idx, 'label']       
+            label = bert_data.iloc[label_idx, 'label']       
             layer = int(sent_idx / 12)  % 12
 
-json.dump(attention, open('roberta-attention-grouped.json'))
+
+for label in [0, 1]:
+    print('label: %s' % label)
+    for layer in tqdm(range(12)):
+        json.dump(
+            attention[label][layer],
+            open('roberta-attention-grouped__label-%s_layer-%s.json' % (label, layer))
+        )
