@@ -27,9 +27,9 @@ body_text = nyt_data['processed_bodies'].apply(lambda x: x[:300])
 print('iterating...')
 all_attention = []
 for sentence in tqdm(body_text):
-    inputs = tokenizer.encode_plus(sentence, return_tensors='pt', add_special_tokens=True).to(args.device)
-    token_type_ids = inputs['token_type_ids']
-    input_ids = inputs['input_ids']
+    inputs = tokenizer.encode_plus(sentence, return_tensors='pt', add_special_tokens=True)
+    token_type_ids = inputs['token_type_ids'].to(device)
+    input_ids = inputs['input_ids'].to(device)
     converted_text = tokenizer.convert_ids_to_tokens(input_ids[0].tolist())
     ## 
     attention = model(input_ids, token_type_ids=token_type_ids)[-1]
@@ -41,7 +41,7 @@ for sentence in tqdm(body_text):
             all_attention.append(head_attention)
 
 print('writing...')
-with open('attention-output.txt', 'w') as f:
+with open('attention-output-roberta.txt', 'w') as f:
     for head_attention in tqdm(all_attention):
         for word, attn_score in head_attention:
             f.write('%s\t%s' % (word, attn_score))
