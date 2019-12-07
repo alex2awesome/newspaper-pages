@@ -387,7 +387,7 @@ def get_args():
                         help="The name of the task to train selected in the list: " + ", ".join(processors.keys()))
     parser.add_argument("--output_dir", default=None, type=str, required=True,
                         help="The output directory where the model predictions and checkpoints will be written.")
-    parser.add_argument("--prediction_data_file", default=None, type=str, required=True,
+    parser.add_argument("--prediction_data_file", default=None, type=str, required=False,
                         help="The output directory to save model predictions.")
 
     ## Other parameters
@@ -520,6 +520,7 @@ def main(args=None):
             args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
             do_lower_case=args.do_lower_case,
             cache_dir=args.cache_dir,
+            cls_token='[CLS]'
         )
         model = model_class.from_pretrained(
             args.model_name_or_path,
