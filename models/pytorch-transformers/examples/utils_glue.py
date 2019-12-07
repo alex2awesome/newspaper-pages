@@ -27,7 +27,7 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import matthews_corrcoef, f1_score, roc_auc_score
 
 logger = logging.getLogger(__name__)
-
+csv.field_size_limit(100000000)
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
